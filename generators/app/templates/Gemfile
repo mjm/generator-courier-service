@@ -4,9 +4,15 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 
 gem 'courier-service', github: 'mjm/courier-service'
 gem 'jwt'
+<% if (useDatabase) { -%>
+gem 'pg'
+<% } -%>
 gem 'puma'
 gem 'rack'
 gem 'rake', '~> 10.0'
+<% if (useDatabase) { -%>
+gem 'sequel'
+<% } -%>
 gem 'sinatra'
 
 group :development do

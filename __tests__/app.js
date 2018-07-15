@@ -1,14 +1,20 @@
 'use strict';
 const path = require('path');
+const sinon = require('sinon');
 const assert = require('yeoman-assert');
 const helpers = require('yeoman-test');
 
 describe('generator-courier-service:app', () => {
-  beforeAll(() => {
-    return helpers
+  let spawnCommand = sinon.fake();
+  beforeAll(done => {
+    helpers
       .run(path.join(__dirname, '../generators/app'))
-      .withPrompts({ someAnswer: true })
-      .withArguments(['foo']);
+      .withPrompts({ useDatabase: false })
+      .withArguments(['foo'])
+      .on('ready', generator => {
+        generator.spawnCommand = spawnCommand;
+      })
+      .on('end', done);
   });
 
   it('creates the service in a named directory', () => {
@@ -41,5 +47,47 @@ describe('generator-courier-service:app', () => {
 
   it('sets the ruby version', () => {
     assert.fileContent('.ruby-version', '2.5.1');
+  });
+
+  it('runs `bundle install`', () => {
+    sinon.assert.calledWith(spawnCommand, 'bundle', ['install']);
+  });
+
+  describe('when the service does not want a database', () => {
+    it('does not include database gems', () => {
+      assert.noFileContent('Gemfile', /gem 'pg'/);
+      assert.noFileContent('Gemfile', /gem 'sequel'/);
+    });
+
+    it('does not initialize the database in environment.rb', () => {
+      assert.noFileContent('config/environment.rb', /DB = Sequel.connect(ENV['DB_URL'])/);
+      assert.noFileContent('config/environment.rb', /require 'sequel'/);
+    });
+  });
+
+  describe('when the service wants database support', () => {
+    beforeAll(done => {
+      helpers
+        .run(path.join(__dirname, '../generators/app'))
+        .withPrompts({ useDatabase: true })
+        .withArguments(['foo'])
+        .on('ready', generator => {
+          generator.spawnCommand = sinon.fake();
+        })
+        .on('end', done);
+    });
+
+    it('includes database gems', () => {
+      assert.fileContent('Gemfile', /gem 'pg'/);
+      assert.fileContent('Gemfile', /gem 'sequel'/);
+    });
+
+    it('initializes the database in environment.rb', () => {
+      assert.fileContent(
+        'config/environment.rb',
+        /DB = Sequel.connect\(ENV\['DB_URL'\]\)/
+      );
+      assert.fileContent('config/environment.rb', /require 'sequel'/);
+    });
   });
 });

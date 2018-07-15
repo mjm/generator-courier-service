@@ -1,8 +1,15 @@
+<% if (useDatabase) { -%>
+require 'sequel'
+<% } -%>
 require 'pathname'
 require 'courier/service'
 
 RACK_ENV = (ENV['RACK_ENV'] || 'development').to_sym
 Courier::Service.load_environment_variables
+
+<% if (useDatabase) { -%>
+DB = Sequel.connect(ENV['DB_URL'])
+<% } -%>
 
 def require_app(dir)
   Pathname

@@ -18,6 +18,12 @@ module.exports = class extends Generator {
         name: 'rubyVersion',
         message: 'What Ruby version should the service use?',
         default: '2.5.1'
+      },
+      {
+        type: 'confirm',
+        name: 'useDatabase',
+        message: 'Would you like to include PostgreSQL support?',
+        default: true
       }
     ];
 
@@ -39,8 +45,6 @@ module.exports = class extends Generator {
       '.travis.yml',
       'app.rb',
       'config.ru',
-      'config/environment.rb',
-      'Gemfile',
       'Rakefile',
       'spec/spec_helper.rb'
     ];
@@ -50,6 +54,14 @@ module.exports = class extends Generator {
 
     this.fs.copyTpl(this.templatePath('app.yaml'), this.destinationPath('app.yaml'), {
       bucketName: this.options.name
+    });
+    this.fs.copyTpl(
+      this.templatePath('config/environment.rb'),
+      this.destinationPath('config/environment.rb'),
+      { useDatabase: this.props.useDatabase }
+    );
+    this.fs.copyTpl(this.templatePath('Gemfile'), this.destinationPath('Gemfile'), {
+      useDatabase: this.props.useDatabase
     });
 
     this.fs.write(this.destinationPath('.ruby-version'), this.props.rubyVersion);
