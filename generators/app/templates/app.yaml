@@ -5,6 +5,11 @@ entrypoint: bundle exec rackup --port $PORT
 env_variables:
   GOOGLE_CLOUD_STORAGE_BUCKET: <%= bucketName %>-stable-reactor-209402
 
+<% if (useDatabase) { -%>
+beta_settings:
+  cloud_sql_instances: stable-reactor-209402:us-central1:courier-<%= bucketName %>
+<% } -%>
+
 manual_scaling:
   instances: 1
 resources:

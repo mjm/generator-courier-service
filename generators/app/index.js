@@ -53,7 +53,8 @@ module.exports = class extends Generator {
     });
 
     this.fs.copyTpl(this.templatePath('app.yaml'), this.destinationPath('app.yaml'), {
-      bucketName: this.options.name
+      bucketName: this.options.name,
+      useDatabase: this.props.useDatabase
     });
     this.fs.copyTpl(
       this.templatePath('config/environment.rb'),

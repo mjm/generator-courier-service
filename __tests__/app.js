@@ -60,8 +60,16 @@ describe('generator-courier-service:app', () => {
     });
 
     it('does not initialize the database in environment.rb', () => {
-      assert.noFileContent('config/environment.rb', /DB = Sequel.connect(ENV['DB_URL'])/);
+      assert.noFileContent(
+        'config/environment.rb',
+        /DB = Sequel.connect\(ENV\['DB_URL'\]\)/
+      );
       assert.noFileContent('config/environment.rb', /require 'sequel'/);
+    });
+
+    it('does not include App Engine SQL configuration', () => {
+      assert.noFileContent('app.yaml', /beta_settings/);
+      assert.noFileContent('app.yaml', /cloud_sql_instances/);
     });
   });
 
@@ -88,6 +96,14 @@ describe('generator-courier-service:app', () => {
         /DB = Sequel.connect\(ENV\['DB_URL'\]\)/
       );
       assert.fileContent('config/environment.rb', /require 'sequel'/);
+    });
+
+    it('includes App Engine SQL configuration', () => {
+      assert.fileContent('app.yaml', /beta_settings/);
+      assert.fileContent(
+        'app.yaml',
+        /cloud_sql_instances: stable-reactor-209402:us-central1:courier-foo/
+      );
     });
   });
 });
