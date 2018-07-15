@@ -1,0 +1,9 @@
+{
+  "generator-node": {
+    "promptValues": {
+      "authorName": "Matt Moriarity",
+      "authorEmail": "matt@mattmoriarity.com",
+      "authorUrl": "https://mattmoriarity.com"
+    }
+  }
+}
