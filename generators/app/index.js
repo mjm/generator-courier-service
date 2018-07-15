@@ -71,6 +71,8 @@ module.exports = class extends Generator {
     emptyFiles.forEach(file => {
       this.fs.write(file, '');
     });
+
+    this.spawnCommand('git', ['init', '-q']);
   }
 
   install() {

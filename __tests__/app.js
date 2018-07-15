@@ -53,6 +53,10 @@ describe('generator-courier-service:app', () => {
     sinon.assert.calledWith(spawnCommand, 'bundle', ['install']);
   });
 
+  it('runs `git init`', () => {
+    sinon.assert.calledWith(spawnCommand, 'git', ['init', '-q']);
+  });
+
   describe('when the service does not want a database', () => {
     it('does not include database gems', () => {
       assert.noFileContent('Gemfile', /gem 'pg'/);
