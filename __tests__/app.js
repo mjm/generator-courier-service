@@ -45,6 +45,10 @@ describe('generator-courier-service:app', () => {
     );
   });
 
+  it('sets the service name in the App Engine configuration', () => {
+    assert.fileContent('app.yaml', /service: foo/);
+  });
+
   it('sets the ruby version', () => {
     assert.fileContent('.ruby-version', '2.5.1');
   });
