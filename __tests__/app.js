@@ -62,6 +62,10 @@ describe('generator-courier-service:app', () => {
   });
 
   describe('when the service does not want a database', () => {
+    it('does not include a models directory', () => {
+      assert.noFile(['app/models/.keep', 'spec/models/.keep']);
+    });
+
     it('does not include database gems', () => {
       assert.noFileContent('Gemfile', /gem 'pg'/);
       assert.noFileContent('Gemfile', /gem 'sequel'/);
@@ -79,6 +83,11 @@ describe('generator-courier-service:app', () => {
       assert.noFileContent('app.yaml', /beta_settings/);
       assert.noFileContent('app.yaml', /cloud_sql_instances/);
     });
+
+    it('does not set up the database when testing', () => {
+      assert.noFileContent('spec/spec_helper.rb', /ENV\['DB_URL'\]/);
+      assert.noFileContent('spec/spec_helper.rb', /DB.transaction/);
+    });
   });
 
   describe('when the service wants database support', () => {
@@ -91,6 +100,10 @@ describe('generator-courier-service:app', () => {
           generator.spawnCommand = sinon.fake();
         })
         .on('end', done);
+    });
+
+    it('includes a models directory', () => {
+      assert.file(['app/models/.keep', 'spec/models/.keep']);
     });
 
     it('includes database gems', () => {
@@ -112,6 +125,14 @@ describe('generator-courier-service:app', () => {
         'app.yaml',
         /cloud_sql_instances: stable-reactor-209402:us-central1:courier-foo/
       );
+    });
+
+    it('sets up the database when testing', () => {
+      assert.fileContent(
+        'spec/spec_helper.rb',
+        /ENV\['DB_URL'\] = 'postgres:\/\/\/courier_foo_test'/
+      );
+      assert.fileContent('spec/spec_helper.rb', /DB.transaction/);
     });
   });
 });

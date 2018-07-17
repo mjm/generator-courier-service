@@ -40,14 +40,7 @@ module.exports = class extends Generator {
   }
 
   writing() {
-    const files = [
-      '.gitignore',
-      '.travis.yml',
-      'app.rb',
-      'config.ru',
-      'Rakefile',
-      'spec/spec_helper.rb'
-    ];
+    const files = ['.gitignore', '.travis.yml', 'app.rb', 'config.ru', 'Rakefile'];
     files.forEach(file => {
       this.fs.copy(this.templatePath(file), this.destinationPath(file));
     });
@@ -64,10 +57,22 @@ module.exports = class extends Generator {
     this.fs.copyTpl(this.templatePath('Gemfile'), this.destinationPath('Gemfile'), {
       useDatabase: this.props.useDatabase
     });
+    this.fs.copyTpl(
+      this.templatePath('spec/spec_helper.rb'),
+      this.destinationPath('spec/spec_helper.rb'),
+      {
+        useDatabase: this.props.useDatabase,
+        appName: this.options.name
+      }
+    );
 
     this.fs.write(this.destinationPath('.ruby-version'), this.props.rubyVersion);
 
     const emptyFiles = ['app/controllers/.keep', 'spec/controllers/.keep'];
+    if (this.props.useDatabase) {
+      emptyFiles.push('app/models/.keep');
+      emptyFiles.push('spec/models/.keep');
+    }
     emptyFiles.forEach(file => {
       this.fs.write(file, '');
     });
