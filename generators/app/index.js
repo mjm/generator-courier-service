@@ -24,6 +24,12 @@ module.exports = class extends Generator {
         name: 'useDatabase',
         message: 'Would you like to include PostgreSQL support?',
         default: true
+      },
+      {
+        type: 'confirm',
+        name: 'useSidekiq',
+        message: 'Would you like to include support for background jobs?',
+        default: true
       }
     ];
 
@@ -47,7 +53,6 @@ module.exports = class extends Generator {
       'app/controllers/index_controller.rb',
       'app/views/index.md',
       'config.ru',
-      'Procfile',
       'spec/.rubocop.yml'
     ];
     files.forEach(file => {
@@ -65,11 +70,18 @@ module.exports = class extends Generator {
     this.fs.copyTpl(
       this.templatePath('config/environment.rb'),
       this.destinationPath('config/environment.rb'),
-      { useDatabase: this.props.useDatabase }
+      {
+        useDatabase: this.props.useDatabase,
+        useSidekiq: this.props.useSidekiq
+      }
     );
     this.fs.copyTpl(this.templatePath('Gemfile'), this.destinationPath('Gemfile'), {
       useDatabase: this.props.useDatabase,
+      useSidekiq: this.props.useSidekiq,
       rubyVersion: this.props.rubyVersion
+    });
+    this.fs.copyTpl(this.templatePath('Procfile'), this.destinationPath('Procfile'), {
+      useSidekiq: this.props.useSidekiq
     });
     this.fs.copyTpl(this.templatePath('Rakefile'), this.destinationPath('Rakefile'), {
       useDatabase: this.props.useDatabase
@@ -90,6 +102,10 @@ module.exports = class extends Generator {
       emptyFiles.push('app/models/.keep');
       emptyFiles.push('db/migrations/.keep');
       emptyFiles.push('spec/models/.keep');
+    }
+    if (this.props.useSidekiq) {
+      emptyFiles.push('app/workers/.keep');
+      emptyFiles.push('spec/workers/.keep');
     }
     emptyFiles.forEach(file => {
       this.fs.write(file, '');

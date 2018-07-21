@@ -9,7 +9,7 @@ describe('generator-courier-service:app', () => {
   beforeAll(done => {
     helpers
       .run(path.join(__dirname, '../generators/app'))
-      .withPrompts({ useDatabase: false })
+      .withPrompts({ useDatabase: false, useSidekiq: false })
       .withArguments(['foo'])
       .on('ready', generator => {
         generator.spawnCommand = spawnCommand;
@@ -135,6 +135,69 @@ describe('generator-courier-service:app', () => {
       assert.fileContent('.travis.yml', /bundle exec rake db:migrate/);
       assert.fileContent('.travis.yml', /services:\n- postgresql/);
       assert.fileContent('.travis.yml', /addons:\n {2}postgresql: '9.6'/);
+    });
+  });
+
+  describe('when the service does not want background job support', () => {
+    beforeAll(done => {
+      helpers
+        .run(path.join(__dirname, '../generators/app'))
+        .withPrompts({ useSidekiq: false })
+        .withArguments(['foo'])
+        .on('ready', generator => {
+          generator.spawnCommand = sinon.fake();
+        })
+        .on('end', done);
+    });
+
+    it('does not include a workers directory', () => {
+      assert.noFile(['app/workers/.keep', 'spec/workers/.keep']);
+    });
+
+    it('does not include Sidekiq gems in the Gemfile', () => {
+      assert.noFileContent('Gemfile', /gem 'sidekiq'/);
+      assert.noFileContent('Gemfile', /gem 'rspec-sidekiq'/);
+    });
+
+    it('does not include a worker process in the Procfile', () => {
+      assert.noFileContent('Procfile', /worker:/);
+    });
+
+    it('does not include Sidekiq setup in the environment setup', () => {
+      assert.noFileContent('config/environment.rb', /Sidekiq.configure/);
+      assert.noFileContent('config/environment.rb', /require_app :workers/);
+    });
+  });
+
+  describe('when the service wants background job support', () => {
+    beforeAll(done => {
+      helpers
+        .run(path.join(__dirname, '../generators/app'))
+        .withPrompts({ useSidekiq: true })
+        .withArguments(['foo'])
+        .on('ready', generator => {
+          generator.spawnCommand = sinon.fake();
+        })
+        .on('end', done);
+    });
+
+    it('includes a workers directory', () => {
+      assert.file(['app/workers/.keep', 'spec/workers/.keep']);
+    });
+
+    it('includes Sidekiq gems in the Gemfile', () => {
+      assert.fileContent('Gemfile', /gem 'sidekiq'/);
+      assert.fileContent('Gemfile', /gem 'rspec-sidekiq'/);
+    });
+
+    it('includes a worker process in the Procfile', () => {
+      assert.fileContent('Procfile', /\nworker:/);
+    });
+
+    it('includes Sidekiq setup in the environment setup', () => {
+      assert.fileContent('config/environment.rb', /Sidekiq.configure_client/);
+      assert.fileContent('config/environment.rb', /Sidekiq.configure_server/);
+      assert.fileContent('config/environment.rb', /require_app :workers/);
     });
   });
 });

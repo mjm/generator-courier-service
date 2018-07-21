@@ -16,6 +16,9 @@ gem 'rdiscount'
 <% if (useDatabase) { -%>
 gem 'sequel'
 <% } -%>
+<% if (useSidekiq) { -%>
+gem 'sidekiq'
+<% } -%>
 gem 'sinatra', require: 'sinatra/base'
 gem 'sinatra-contrib'
 
@@ -26,4 +29,7 @@ end
 group :test do
   gem 'rack-test'
   gem 'rspec', '~> 3.0'
+<% if (useSidekiq) { -%>
+  gem 'rspec-sidekiq'
+<% } -%>
 end
