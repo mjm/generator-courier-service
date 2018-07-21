@@ -40,21 +40,38 @@ module.exports = class extends Generator {
   }
 
   writing() {
-    const files = ['.gitignore', '.travis.yml', 'app.rb', 'config.ru', 'Rakefile'];
+    const files = [
+      '.gitignore',
+      '.rubocop.yml',
+      'app.rb',
+      'app/controllers/index_controller.rb',
+      'app/views/index.md',
+      'config.ru',
+      'Procfile',
+      'spec/.rubocop.yml'
+    ];
     files.forEach(file => {
       this.fs.copy(this.templatePath(file), this.destinationPath(file));
     });
 
-    this.fs.copyTpl(this.templatePath('app.yaml'), this.destinationPath('app.yaml'), {
-      bucketName: this.options.name,
-      useDatabase: this.props.useDatabase
-    });
+    this.fs.copyTpl(
+      this.templatePath('.travis.yml'),
+      this.destinationPath('.travis.yml'),
+      {
+        useDatabase: this.props.useDatabase,
+        appName: this.options.name
+      }
+    );
     this.fs.copyTpl(
       this.templatePath('config/environment.rb'),
       this.destinationPath('config/environment.rb'),
       { useDatabase: this.props.useDatabase }
     );
     this.fs.copyTpl(this.templatePath('Gemfile'), this.destinationPath('Gemfile'), {
+      useDatabase: this.props.useDatabase,
+      rubyVersion: this.props.rubyVersion
+    });
+    this.fs.copyTpl(this.templatePath('Rakefile'), this.destinationPath('Rakefile'), {
       useDatabase: this.props.useDatabase
     });
     this.fs.copyTpl(
@@ -68,9 +85,10 @@ module.exports = class extends Generator {
 
     this.fs.write(this.destinationPath('.ruby-version'), this.props.rubyVersion);
 
-    const emptyFiles = ['app/controllers/.keep', 'spec/controllers/.keep'];
+    const emptyFiles = ['lib/.keep', 'spec/controllers/.keep'];
     if (this.props.useDatabase) {
       emptyFiles.push('app/models/.keep');
+      emptyFiles.push('db/migrations/.keep');
       emptyFiles.push('spec/models/.keep');
     }
     emptyFiles.forEach(file => {

@@ -1,10 +1,9 @@
 require 'bundler/setup'
-require 'rack/test'
 require 'base64'
 
 ENV['RACK_ENV'] = 'test'
 <% if (useDatabase) { -%>
-ENV['DB_URL'] = 'postgres:///courier_<%= appName %>_test'
+ENV['DATABASE_URL'] = 'postgres:///courier_<%= appName %>_test'
 <% } -%>
 ENV['JWT_SECRET'] = Base64.encode64(Random.new.bytes(32))
 ENV['SESSION_SECRET'] = 'super secret'

@@ -5,6 +5,12 @@ rvm:
 cache: bundler
 before_install:
 - gem install bundler -v 1.16.1
-deploy:
-  provider: gae
-  project: stable-reactor-209402
+<% if (useDatabase) { -%>
+before_script:
+- psql -c 'create database courier_<%= appName %>_test;' -U postgres
+- DATABASE_URL="postgres:///courier_<%= appName %>_test" bundle exec rake db:migrate
+services:
+- postgresql
+addons:
+  postgresql: '9.6'
+<% } -%>

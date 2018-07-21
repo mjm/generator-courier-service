@@ -1,14 +1,13 @@
-<% if (useDatabase) { -%>
-require 'sequel'
-<% } -%>
 require 'pathname'
-require 'courier/service'
 
 RACK_ENV = (ENV['RACK_ENV'] || 'development').to_sym
-Courier::Service.load_environment_variables
+Bundler.require(:default, RACK_ENV)
+
+$LOAD_PATH.unshift File.expand_path(File.join(__dir__, '..', 'lib'))
 
 <% if (useDatabase) { -%>
-DB = Sequel.connect(ENV['DB_URL'])
+DB = Sequel.connect(ENV['DATABASE_URL'])
+Sequel::Model.plugin :json_serializer
 <% } -%>
 
 def require_app(dir)
@@ -19,5 +18,8 @@ def require_app(dir)
     .each { |file| require file }
 end
 
+<% if (useDatabase) { -%>
+require_app :models
+<% } -%>
 require_app :middlewares
 require_app :helpers

@@ -24,33 +24,27 @@ describe('generator-courier-service:app', () => {
   it('creates files', () => {
     assert.file([
       '.gitignore',
+      '.rubocop.yml',
       '.ruby-version',
       '.travis.yml',
       'app.rb',
-      'app.yaml',
-      'app/controllers/.keep',
+      'app/controllers/index_controller.rb',
+      'app/views/index.md',
       'config.ru',
       'config/environment.rb',
       'Gemfile',
+      'lib/.keep',
       'Rakefile',
+      'Procfile',
+      'spec/.rubocop.yml',
       'spec/controllers/.keep',
       'spec/spec_helper.rb'
     ]);
   });
 
-  it('sets the bucket name in the App Engine configuration', () => {
-    assert.fileContent(
-      'app.yaml',
-      /GOOGLE_CLOUD_STORAGE_BUCKET: foo-stable-reactor-209402/
-    );
-  });
-
-  it('sets the service name in the App Engine configuration', () => {
-    assert.fileContent('app.yaml', /service: foo/);
-  });
-
   it('sets the ruby version', () => {
     assert.fileContent('.ruby-version', '2.5.1');
+    assert.fileContent('Gemfile', /ruby '2.5.1'/);
   });
 
   it('runs `bundle install`', () => {
@@ -63,7 +57,7 @@ describe('generator-courier-service:app', () => {
 
   describe('when the service does not want a database', () => {
     it('does not include a models directory', () => {
-      assert.noFile(['app/models/.keep', 'spec/models/.keep']);
+      assert.noFile(['app/models/.keep', 'spec/models/.keep', 'db/migrations/.keep']);
     });
 
     it('does not include database gems', () => {
@@ -74,19 +68,23 @@ describe('generator-courier-service:app', () => {
     it('does not initialize the database in environment.rb', () => {
       assert.noFileContent(
         'config/environment.rb',
-        /DB = Sequel.connect\(ENV\['DB_URL'\]\)/
+        /DB = Sequel.connect\(ENV\['DATABASE_URL'\]\)/
       );
-      assert.noFileContent('config/environment.rb', /require 'sequel'/);
-    });
-
-    it('does not include App Engine SQL configuration', () => {
-      assert.noFileContent('app.yaml', /beta_settings/);
-      assert.noFileContent('app.yaml', /cloud_sql_instances/);
+      assert.noFileContent('config/environment.rb', /require_app :models/);
     });
 
     it('does not set up the database when testing', () => {
-      assert.noFileContent('spec/spec_helper.rb', /ENV\['DB_URL'\]/);
+      assert.noFileContent('spec/spec_helper.rb', /ENV\['DATABASE_URL'\]/);
       assert.noFileContent('spec/spec_helper.rb', /DB.transaction/);
+    });
+
+    it('does not include a Rake task for running migrations', () => {
+      assert.noFileContent('Rakefile', /task :migrate/);
+    });
+
+    it('does not set up the database for Travis', () => {
+      assert.noFileContent('.travis.yml', /postgresql/);
+      assert.noFileContent('.travis.yml', /DATABASE_URL/);
     });
   });
 
@@ -103,7 +101,7 @@ describe('generator-courier-service:app', () => {
     });
 
     it('includes a models directory', () => {
-      assert.file(['app/models/.keep', 'spec/models/.keep']);
+      assert.file(['app/models/.keep', 'spec/models/.keep', 'db/migrations/.keep']);
     });
 
     it('includes database gems', () => {
@@ -114,25 +112,29 @@ describe('generator-courier-service:app', () => {
     it('initializes the database in environment.rb', () => {
       assert.fileContent(
         'config/environment.rb',
-        /DB = Sequel.connect\(ENV\['DB_URL'\]\)/
+        /DB = Sequel.connect\(ENV\['DATABASE_URL'\]\)/
       );
-      assert.fileContent('config/environment.rb', /require 'sequel'/);
-    });
-
-    it('includes App Engine SQL configuration', () => {
-      assert.fileContent('app.yaml', /beta_settings/);
-      assert.fileContent(
-        'app.yaml',
-        /cloud_sql_instances: stable-reactor-209402:us-central1:courier-foo/
-      );
+      assert.fileContent('config/environment.rb', /require_app :models/);
     });
 
     it('sets up the database when testing', () => {
       assert.fileContent(
         'spec/spec_helper.rb',
-        /ENV\['DB_URL'\] = 'postgres:\/\/\/courier_foo_test'/
+        /ENV\['DATABASE_URL'\] = 'postgres:\/\/\/courier_foo_test'/
       );
       assert.fileContent('spec/spec_helper.rb', /DB.transaction/);
+    });
+
+    it('include a Rake task for running migrations', () => {
+      assert.fileContent('Rakefile', /task :migrate/);
+    });
+
+    it('sets up the database for Travis', () => {
+      assert.fileContent('.travis.yml', /create database courier_foo_test;/);
+      assert.fileContent('.travis.yml', /DATABASE_URL="postgres:\/\/\/courier_foo_test"/);
+      assert.fileContent('.travis.yml', /bundle exec rake db:migrate/);
+      assert.fileContent('.travis.yml', /services:\n- postgresql/);
+      assert.fileContent('.travis.yml', /addons:\n {2}postgresql: '9.6'/);
     });
   });
 });
