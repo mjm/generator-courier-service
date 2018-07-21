@@ -48,6 +48,7 @@ module.exports = class extends Generator {
   writing() {
     const files = [
       '.gitignore',
+      '.rspec',
       '.rubocop.yml',
       'app.rb',
       'app/controllers/index_controller.rb',

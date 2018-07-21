@@ -24,6 +24,7 @@ describe('generator-courier-service:app', () => {
   it('creates files', () => {
     assert.file([
       '.gitignore',
+      '.rspec',
       '.rubocop.yml',
       '.ruby-version',
       '.travis.yml',
